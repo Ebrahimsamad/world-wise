@@ -1,13 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MapContainer,
-  Marker,
   TileLayer,
+  Marker,
   Popup,
   useMap,
-  useMapEvent,
   useMapEvents,
 } from "react-leaflet";
+
 import styles from "./Map.module.css";
 import { useEffect, useState } from "react";
 import { useCities } from "../contexts/CitiesContext";
@@ -16,14 +16,13 @@ import { useUrlPosition } from "../hooks/useUrlPosition";
 import Button from "./Button";
 
 function Map() {
-  const { cities, flagemojiToPNG } = useCities();
-  const [mapPosition, setMapPosition] = useState([30, 30]);
+  const { cities } = useCities();
+  const [mapPosition, setMapPosition] = useState([40, 0]);
   const {
     isLoading: isLoadingPosition,
     position: geolocationPosition,
     getPosition,
   } = useGeolocation();
-
   const [mapLat, mapLng] = useUrlPosition();
 
   useEffect(
@@ -45,14 +44,15 @@ function Map() {
     <div className={styles.mapContainer}>
       {!geolocationPosition && (
         <Button type="position" onClick={getPosition}>
-          {isLoadingPosition ? "Loading..." : "Use Your Position"}
+          {isLoadingPosition ? "Loading..." : "Use your position"}
         </Button>
       )}
+
       <MapContainer
-        className={styles.map}
         center={mapPosition}
         zoom={6}
         scrollWheelZoom={true}
+        className={styles.map}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -64,8 +64,7 @@ function Map() {
             key={city.id}
           >
             <Popup>
-              <span>{city.emoji ? flagemojiToPNG(city.emoji) : ""}</span>
-              <span>{city.cityName}</span>
+              <span>{city.emoji}</span> <span>{city.cityName}</span>
             </Popup>
           </Marker>
         ))}
@@ -79,7 +78,7 @@ function Map() {
 
 function ChangeCenter({ position }) {
   const map = useMap();
-  map.flyTo(position, 9);
+  map.setView(position);
   return null;
 }
 
