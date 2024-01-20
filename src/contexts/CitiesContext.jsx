@@ -1,15 +1,14 @@
 import {
   createContext,
-  useContext,
-  useState,
   useEffect,
+  useContext,
   useReducer,
   useCallback,
 } from "react";
 
-const CitiesContext = createContext();
+const BASE_URL = "http://localhost:9000";
 
-const BASE_URL = "http://localhost:3000";
+const CitiesContext = createContext();
 
 const initialState = {
   cities: [],
@@ -67,27 +66,18 @@ function CitiesProvider({ children }) {
     initialState
   );
 
-  const flagemojiToPNG = (flag) => {
-    var countryCode = Array.from(flag, (codeUnit) => codeUnit.codePointAt())
-      .map((char) => String.fromCharCode(char - 127397).toLowerCase())
-      .join("");
-    return (
-      <img src={`https://flagcdn.com/24x18/${countryCode}.png`} alt="flag" />
-    );
-  };
-
   useEffect(function () {
     async function fetchCities() {
       dispatch({ type: "loading" });
+
       try {
         const res = await fetch(`${BASE_URL}/cities`);
         const data = await res.json();
-
         dispatch({ type: "cities/loaded", payload: data });
       } catch {
         dispatch({
           type: "rejected",
-          payload: "There's an error loading data...",
+          payload: "There was an error loading cities...",
         });
       }
     }
@@ -99,15 +89,15 @@ function CitiesProvider({ children }) {
       if (Number(id) === currentCity.id) return;
 
       dispatch({ type: "loading" });
+
       try {
         const res = await fetch(`${BASE_URL}/cities/${id}`);
         const data = await res.json();
-
         dispatch({ type: "city/loaded", payload: data });
-      } catch (error) {
+      } catch {
         dispatch({
           type: "rejected",
-          payload: "There's an error loading cities...",
+          payload: "There was an error loading the city...",
         });
       }
     },
@@ -127,14 +117,11 @@ function CitiesProvider({ children }) {
       });
       const data = await res.json();
 
-      dispatch({
-        type: "city/created",
-        payload: data,
-      });
-    } catch (error) {
+      dispatch({ type: "city/created", payload: data });
+    } catch {
       dispatch({
         type: "rejected",
-        payload: "There's an error creating data...",
+        payload: "There was an error creating the city...",
       });
     }
   }
@@ -146,14 +133,12 @@ function CitiesProvider({ children }) {
       await fetch(`${BASE_URL}/cities/${id}`, {
         method: "DELETE",
       });
-      dispatch({
-        type: "city/deleted",
-        payload: id,
-      });
-    } catch (error) {
+
+      dispatch({ type: "city/deleted", payload: id });
+    } catch {
       dispatch({
         type: "rejected",
-        payload: "There's an error deleting data...",
+        payload: "There was an error deleting the city...",
       });
     }
   }
@@ -161,7 +146,6 @@ function CitiesProvider({ children }) {
   return (
     <CitiesContext.Provider
       value={{
-        flagemojiToPNG,
         cities,
         isLoading,
         currentCity,
@@ -179,7 +163,7 @@ function CitiesProvider({ children }) {
 function useCities() {
   const context = useContext(CitiesContext);
   if (context === undefined)
-    throw new Error("CitiesContext Was Used outstide the Citiesrovider");
+    throw new Error("CitiesContext was used outside the CitiesProvider");
   return context;
 }
 
